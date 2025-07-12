@@ -8,23 +8,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Heart, MessageCircle, TrendingUp, Star, Crown, Zap, Share } from "lucide-react" 
 import { tweets, topYappers, celebrities, mindshareGainers } from "@/data/tweets"
 import { UserProfileCard } from "@/components/sections/UserProfileCard"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { fetchLeaderboard } from "@/lib/api"
 
 export function TopTweets() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("top")
   const [timeFilter, setTimeFilter] = useState("24H")
   const [showFilters, _] = useState(false)
+  const [leaderboard, setLeaderboard] = useState(topYappers)
+
+  useEffect(() => {
+    fetchLeaderboard()
+      .then((data) => setLeaderboard(data.profiles || topYappers))
+      .catch(() => {})
+  }, [])
 
   // Filter yappers based on search term
   const filteredYappers = useMemo(() => {
-    if (!searchTerm) return topYappers
-    
-    return topYappers.filter(yapper => 
+    if (!searchTerm) return leaderboard
+
+    return leaderboard.filter(yapper =>
       yapper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       yapper.username.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [searchTerm])
+  }, [searchTerm, leaderboard])
 
   // Filter gainers based on search term
   const filteredGainers = useMemo(() => {

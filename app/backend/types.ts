@@ -17,6 +17,15 @@ export type IAgent = {
   status: AgentStatus;
 };
 
+export interface IUser {
+  id: string;
+  username: string;
+  email?: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface IApiErrorResponse {
   /** The status of the error (e.g. 'error', 'success') */
   status: string;

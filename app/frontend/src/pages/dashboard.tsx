@@ -7,9 +7,30 @@ import { Users, MessageSquare, Wallet, Trophy, Star, TrendingUp, Award, Crown, Z
 import { topRanking, dashboardStats } from "@/data/dashboard"
 import { topYappers } from "@/data/tweets"
 import { useRole } from "@/hooks/useRole"
+import { useEffect, useState } from "react"
+import { fetchSocialRank } from "@/lib/api"
 
 export function Dashboard() {
   const { user } = useRole();
+  const [score, setScore] = useState(user?.score)
+
+  useEffect(() => {
+    if (!user) return
+    fetchSocialRank(user.username)
+      .then((data) => {
+        if (data?.ranking) {
+          setScore({
+            currentScore: data.ranking.rank_score,
+            weeklyChange: 0,
+            rank: data.ranking.rank_percentile ?? 0,
+            totalUsers: 0,
+            level: 'N/A',
+            nextLevelScore: 100
+          })
+        }
+      })
+      .catch(() => {})
+  }, [user])
 
   return (
     <div className="space-y-4 lg:space-y-6">
@@ -71,7 +92,7 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
         {/* My Score - Left */}
-        {user?.score && (
+        {score && (
           <Card className="bg-gradient-to-r from-slate-800 to-slate-700 border-slate-600">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -80,7 +101,7 @@ export function Dashboard() {
                   <CardTitle className="text-white text-base lg:text-lg">My Score</CardTitle>
                 </div>
                 <Badge className={`${user.role === 'admin' ? 'bg-orange-500' : 'bg-blue-500'} text-white text-xs`}>
-                  {user.score.level}
+                  {score?.level}
                 </Badge>
               </div>
               <p className="text-slate-400 text-xs lg:text-sm">Your performance on the platform</p>
@@ -90,34 +111,34 @@ export function Dashboard() {
                 {/* Current Score */}
                 <div className="text-center">
                   <div className="text-lg lg:text-2xl font-bold text-white mb-1">
-                    {user.score.currentScore.toLocaleString()}
+                    {score?.currentScore?.toLocaleString()}
                   </div>
                   <div className="text-slate-400 text-xs lg:text-sm">Total Score</div>
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <TrendingUp className="w-3 h-3 text-green-400" />
-                    <span className="text-green-400 text-xs hidden sm:inline">+{user.score.weeklyChange} this week</span>
-                    <span className="text-green-400 text-xs sm:hidden">+{user.score.weeklyChange}</span>
+                    <span className="text-green-400 text-xs hidden sm:inline">+{score?.weeklyChange ?? 0} this week</span>
+                    <span className="text-green-400 text-xs sm:hidden">+{score?.weeklyChange ?? 0}</span>
                   </div>
                 </div>
 
                 {/* Ranking */}
                 <div className="text-center">
                   <div className="text-lg lg:text-2xl font-bold text-orange-400 mb-1">
-                    #{user.score.rank}
+                    #{score?.rank}
                   </div>
                   <div className="text-slate-400 text-xs lg:text-sm">Ranking</div>
                   <div className="text-slate-500 text-xs mt-1 hidden sm:block">
-                    out of {user.score.totalUsers.toLocaleString()} users
+                    out of {score?.totalUsers?.toLocaleString()}
                   </div>
                   <div className="text-slate-500 text-xs mt-1 sm:hidden">
-                    /{user.score.totalUsers.toLocaleString()}
+                    /{score?.totalUsers?.toLocaleString()}
                   </div>
                 </div>
 
                 {/* Progress to next level */}
                 <div className="text-center">
                   <div className="text-lg lg:text-2xl font-bold text-blue-400 mb-1">
-                    {Math.round((user.score.currentScore / user.score.nextLevelScore) * 100)}%
+                    {score ? Math.round((score.currentScore / score.nextLevelScore) * 100) : 0}%
                   </div>
                   <div className="text-slate-400 text-xs lg:text-sm">Progress</div>
                   <div className="text-slate-500 text-xs mt-1 hidden sm:block">
@@ -132,11 +153,11 @@ export function Dashboard() {
                   <span className="text-slate-400 hidden sm:inline">Progress to next level</span>
                   <span className="text-slate-400 sm:hidden">Next Level</span>
                   <span className="text-slate-300">
-                    {user.score.currentScore.toLocaleString()} / {user.score.nextLevelScore.toLocaleString()}
+                    {score?.currentScore?.toLocaleString()} / {score?.nextLevelScore?.toLocaleString()}
                   </span>
                 </div>
                 <Progress 
-                  value={(user.score.currentScore / user.score.nextLevelScore) * 100} 
+                  value={score ? (score.currentScore / score.nextLevelScore) * 100 : 0}
                   className="h-2 lg:h-3"
                 />
               </div>
@@ -145,11 +166,11 @@ export function Dashboard() {
               <div className="flex items-center gap-2 lg:gap-4 pt-3 lg:pt-4 border-t border-slate-600">
                 <div className="flex items-center gap-1 lg:gap-2">
                   <Award className="w-3 h-3 lg:w-4 lg:h-4 text-yellow-400" />
-                  <span className="text-slate-300 text-xs lg:text-sm">Level {user.score.level}</span>
+                  <span className="text-slate-300 text-xs lg:text-sm">Level {score?.level}</span>
                 </div>
                 <div className="flex items-center gap-1 lg:gap-2">
                   <Trophy className="w-3 h-3 lg:w-4 lg:h-4 text-orange-400" />
-                  <span className="text-slate-300 text-xs lg:text-sm">Top {Math.round((user.score.rank / user.score.totalUsers) * 100)}%</span>
+                  <span className="text-slate-300 text-xs lg:text-sm">Top {score ? Math.round((score.rank / (score.totalUsers || 1)) * 100) : 0}%</span>
                 </div>
               </div>
             </CardContent>

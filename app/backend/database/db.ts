@@ -31,6 +31,18 @@ db.exec(`
   )
 `);
 
+// --- USERS TABLE ---
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT,
+    role TEXT NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 // --- SOCIAL/TIKTOK TABLES ---
 // TikTok profiles table
 db.exec(`
@@ -175,6 +187,42 @@ export function updateAgent(agent: IAgent): void {
 export function deleteAgent(id: string): void {
   const stmt = db.prepare('DELETE FROM agents WHERE id = ?');
   stmt.run(id);
+}
+
+// --- USERS LOGIC ---
+export interface User {
+  id: string;
+  username: string;
+  email?: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function createUser(
+  user: Omit<User, 'id' | 'created_at' | 'updated_at'>,
+): string {
+  const id = uuidv4();
+  const stmt = db.prepare(
+    'INSERT INTO users (id, username, email, role) VALUES (?, ?, ?, ?)',
+  );
+  stmt.run(id, user.username, user.email || null, user.role);
+  return id;
+}
+
+export function getUserById(id: string): User | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  return stmt.get(id) as User | null;
+}
+
+export function getUserByUsername(username: string): User | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+  return stmt.get(username) as User | null;
+}
+
+export function listUsers(): User[] {
+  const stmt = db.prepare('SELECT * FROM users ORDER BY created_at DESC');
+  return stmt.all() as User[];
 }
 
 // --- TIKTOK PROFILES LOGIC ---

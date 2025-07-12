@@ -242,19 +242,14 @@ export function ReseauxSociaux() {
     }))
   }
 
-  // For the top grid, show only the 4 platforms with the most followers
-  const sortedPlatforms = [...platformStates].sort((a, b) => {
-    // Remove commas and parse as number
-    const aFollowers = parseInt((a.followers || "0").replace(/,/g, ""), 10)
-    const bFollowers = parseInt((b.followers || "0").replace(/,/g, ""), 10)
-    return bFollowers - aFollowers
-  }).slice(0, 4)
+  // Only display TikTok card for now
+  const sortedPlatforms = platformStates.filter(p => p.name === 'TikTok')
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Social Media Integration</h1>
-        <p className="text-muted-foreground mt-2">Connect and manage your Twitter, Telegram, YouTube and Instagram accounts</p>
+        <p className="text-muted-foreground mt-2">Connect your TikTok account</p>
       </div>
 
       {/* Credentials Modal */}
