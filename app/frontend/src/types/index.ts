@@ -28,4 +28,6 @@ export interface Agent {
     triggers: any[];
     tools: any[];
   };
-} 
+}
+
+export * from './social';

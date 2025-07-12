@@ -116,6 +116,23 @@ db.exec(`
   )
 `);
 
+// Users table for authentication and scoring
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    email TEXT,
+    role TEXT NOT NULL DEFAULT 'user',
+    score_current INTEGER DEFAULT 0,
+    score_weekly_change INTEGER DEFAULT 0,
+    score_rank INTEGER DEFAULT 0,
+    score_total_users INTEGER DEFAULT 0,
+    score_level TEXT DEFAULT 'Rookie',
+    score_next_level INTEGER DEFAULT 0
+  )
+`);
+
 export default db;
 
 export function listAgents(): IAgent[] {
@@ -617,4 +634,104 @@ export function getSeedAccountUsernames(): string[] {
   );
   const results = stmt.all() as { username: string }[];
   return results.map((row) => row.username);
+}
+
+// --- USERS LOGIC ---
+
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  email?: string;
+  role: 'admin' | 'user';
+  score_current: number;
+  score_weekly_change: number;
+  score_rank: number;
+  score_total_users: number;
+  score_level: string;
+  score_next_level: number;
+}
+
+export function createUser(user: Omit<User, 'id'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO users (
+      id, username, password, email, role,
+      score_current, score_weekly_change, score_rank,
+      score_total_users, score_level, score_next_level
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  stmt.run(
+    id,
+    user.username,
+    user.password,
+    user.email || null,
+    user.role,
+    user.score_current || 0,
+    user.score_weekly_change || 0,
+    user.score_rank || 0,
+    user.score_total_users || 0,
+    user.score_level || 'Rookie',
+    user.score_next_level || 0,
+  );
+  return id;
+}
+
+export function getUserByUsername(username: string): User | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+  const row = stmt.get(username) as any;
+  return row || null;
+}
+
+export function getUserById(id: string): User | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  const row = stmt.get(id) as any;
+  return row || null;
+}
+
+export function listUsers(): User[] {
+  const stmt = db.prepare('SELECT * FROM users ORDER BY username');
+  return stmt.all() as User[];
+}
+
+export function updateUser(id: string, updates: Partial<Omit<User, 'id'>>): void {
+  const fields = Object.keys(updates)
+    .map((key) => `${key} = ?`)
+    .join(', ');
+  if (!fields) return;
+  const values = Object.values(updates);
+  const stmt = db.prepare(`UPDATE users SET ${fields} WHERE id = ?`);
+  stmt.run(...values, id);
+}
+
+export function seedDefaultUsers(): void {
+  if (!getUserByUsername('admin')) {
+    createUser({
+      username: 'admin',
+      password: 'admin',
+      email: 'admin@chiliz.com',
+      role: 'admin',
+      score_current: 15420,
+      score_weekly_change: 12,
+      score_rank: 1,
+      score_total_users: 2847,
+      score_level: 'Master',
+      score_next_level: 20000,
+    });
+  }
+
+  if (!getUserByUsername('user')) {
+    createUser({
+      username: 'user',
+      password: 'user',
+      email: 'user@chiliz.com',
+      role: 'user',
+      score_current: 8956,
+      score_weekly_change: 8,
+      score_rank: 156,
+      score_total_users: 2847,
+      score_level: 'Expert',
+      score_next_level: 10000,
+    });
+  }
 }

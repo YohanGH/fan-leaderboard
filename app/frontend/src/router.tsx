@@ -19,6 +19,7 @@ import { LeaderBoard } from "@/pages/leader-board"
 import { WalletIntegration } from "@/pages/wallet-integration"
 import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
 import { SocialManager } from "@/pages/social-manager"
+import { SocialScore } from "@/pages/social-score"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
 import { PullAdminPage } from "@/pages/pull-manager"
@@ -110,6 +111,16 @@ export const router = createBrowserRouter([
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
               <ReseauxSociaux />
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "social-score",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <SocialScore />
             </ProtectedRoute>
           </Suspense>
         ),

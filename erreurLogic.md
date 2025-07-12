@@ -1,0 +1,2 @@
+- The backend build currently fails because dependencies are not installed in the test environment.
+- New user endpoints were added to provide authentication and scoring data.

@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext } from 'react';
-import { User, AuthContextType, UserRole, DEMO_ACCOUNTS } from '@/types/auth';
+import { User, AuthContextType, UserRole } from '@/types/auth';
+import { SERVER_URL } from '@/config/config';
 
 /**
  * Auth context
@@ -43,20 +44,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Check demo accounts
-    const account = Object.values(DEMO_ACCOUNTS).find(
-      acc => acc.username === username && acc.password === password
-    );
-    
-    if (account) {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userData', JSON.stringify(account.userData));
-      setUser(account.userData);
-      setIsLoading(false);
-      return true;
+    try {
+      const response = await fetch(`${SERVER_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        setUser(data.user);
+        setIsLoading(false);
+        return true;
+      }
+    } catch (error) {
+      console.error('Login error', error);
     }
-    
+
     setIsLoading(false);
     return false;
   };

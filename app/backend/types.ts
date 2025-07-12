@@ -140,3 +140,23 @@ export interface ILeaderboardResponse {
     has_more: boolean;
   };
 }
+
+// --- USER TYPES ---
+
+export interface IUserScore {
+  current_score: number;
+  weekly_change: number;
+  rank: number;
+  total_users: number;
+  level: string;
+  next_level_score: number;
+}
+
+export interface IUser {
+  id: string;
+  username: string;
+  password: string;
+  email?: string;
+  role: 'admin' | 'user';
+  score?: IUserScore;
+}

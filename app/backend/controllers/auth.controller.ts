@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { IApiErrorResponse } from '../types';
+import { getUserByUsername } from '../database/db';
 
 /**
  * Login controller
@@ -8,9 +9,12 @@ import { IApiErrorResponse } from '../types';
  */
 export const authController = {
   login: async (req: Request, res: Response) => {
-    const { id, password } = req.body;
-    if (id === 'hello' && password === 'world') {
-      res.json({ success: true });
+    const { username, password } = req.body;
+    const user = getUserByUsername(username);
+    if (user && user.password === password) {
+      const { password: _pw, ...rest } = user;
+      res.json({ success: true, user: rest });
+      return;
     }
     const errorResponse: IApiErrorResponse = {
       status: 'error',

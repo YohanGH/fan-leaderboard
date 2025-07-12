@@ -11,12 +11,16 @@ import './services/telegram-bot-manager';
 import { agentService } from './services/agent';
 import { telegramBotManager } from './services/telegram-bot-manager';
 import { socialRankingService } from './services/social-ranking';
+import { seedDefaultUsers } from './database/db';
 
 // Initialize express app
 const app = express();
 const PORT = config.app.port;
 // Trust proxy - required when running behind a reverse proxy (like Docker)
 app.set('trust proxy', 1);
+
+// Seed demo users
+seedDefaultUsers();
 
 // Middlewares Security & Parsing
 app.use(helmet());

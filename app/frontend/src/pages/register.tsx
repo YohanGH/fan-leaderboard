@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { SERVER_URL } from "@/config/config";
 
 export function Register() {
   const [formData, setFormData] = useState({
@@ -54,16 +55,25 @@ export function Register() {
     setIsLoading(true);
 
     try {
-      // Simulate registration process
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, automatically log in as user after registration
-      const success = await login("user", "user");
-      
-      if (success) {
-        navigate("/dashboard");
+      const response = await fetch(`${SERVER_URL}/api/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        })
+      });
+
+      if (response.ok) {
+        const loginSuccess = await login(formData.username, formData.password);
+        if (loginSuccess) {
+          navigate('/dashboard');
+        } else {
+          setError('Registration failed. Please try again.');
+        }
       } else {
-        setError("Registration failed. Please try again.");
+        setError('Registration failed. Please try again.');
       }
     } catch (err) {
       setError("Registration failed. Please try again.");
